@@ -1,0 +1,64 @@
+package kg.aibek.nic;
+
+import java.io.File;
+import java.util.Scanner;
+
+public class Test {
+
+	public static void main(String[] args) {
+		int numberOfTest;
+		int numberOfVariables;
+		int numberOfConstraints;
+		double optimalSolution;
+
+		double[] p; // Profit
+		double[][] r; // Resource consumption
+		double[] c; // The capacity constraint
+
+		double[] sol;
+		Application app = new Application();
+
+		try {
+			Scanner input = new Scanner(new File(
+					"/home/aibek/Desktop/NIC/hw/mknap1.txt"));
+
+			numberOfTest = input.nextInt();
+			sol = new double[numberOfTest];
+
+			for (int i = 0; i < numberOfTest; i++) {
+				numberOfVariables = input.nextInt();
+				numberOfConstraints = input.nextInt();
+				optimalSolution = input.nextDouble();
+
+				p = new double[numberOfVariables];
+				c = new double[numberOfConstraints];
+				r = new double[numberOfVariables][numberOfConstraints];
+
+				for (int n = 0; n < numberOfVariables; n++) {
+					p[n] = input.nextDouble();
+				}
+
+				for (int n = 0; n < numberOfVariables; n++) {
+					for (int m = 0; m < numberOfConstraints; m++) {
+						r[n][m] = input.nextDouble();
+					}
+				}
+
+				for (int m = 0; m < numberOfConstraints; m++) {
+					c[m] = input.nextDouble();
+				}
+
+				app.initialize(p, r, c);
+
+				String solution = app.solve();
+				sol[i] = TabuSearch.f(TabuSearch.integerArray(solution), p);
+				System.err.println("Solution for test " + i + " is " + sol[i]
+						+ ". Optimal is " + optimalSolution);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
