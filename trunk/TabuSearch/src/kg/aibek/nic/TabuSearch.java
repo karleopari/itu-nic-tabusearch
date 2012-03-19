@@ -17,26 +17,24 @@ public class TabuSearch {
 
 	public static double penalty(int[] x, double[][] r, double[] c,
 			double pMax, double rMin) {
-		double maxCV = Double.MIN_VALUE;
+		double maxCV = 0.0;
 
-		for (int j = 0; j < r[0].length; j++) {
+		for (int j = 0; j < r.length; j++) {
 			maxCV = Math.max(maxCV, CV(x, r, c, j));
 		}
-
-		if (rMin == 0.0)
-			return 0.0;
 
 		return ((pMax + 1) / rMin) * maxCV;
 	}
 
 	public static double CV(int[] x, double[][] r, double[] c, int j) {
-		double max = 0.0;
-
+		double ret = 0.0;
 		for (int i = 0; i < x.length; i++) {
-			max = Math.max(max, r[i][j] * x[i] - c[j]);
+			ret += r[j][i] * x[i];
 		}
 
-		return max;
+		ret = Math.max(0.0, ret - c[j]);
+
+		return ret;
 	}
 
 	public static int[] integerArray(String str) {

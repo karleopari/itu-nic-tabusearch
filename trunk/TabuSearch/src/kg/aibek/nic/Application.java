@@ -10,9 +10,10 @@ public class Application {
 	double[][] r; // Resource consumption
 	double rMin;
 	double[] c; // The capacity constraint
-	int tabuSize = 20; // The size of the memory of tabu list
+	int tabuSize = 100; // The size of the memory of tabu list
 
-	int epoch = 10000;
+	int epoch = 1000;
+	int restart = 100;
 
 	// ---- Variables
 	String bestSolution;
@@ -39,6 +40,9 @@ public class Application {
 			}
 		}
 
+		if (rMin == 0.0)
+			rMin = 0.000000000001;
+
 		return false;
 	}
 
@@ -50,40 +54,47 @@ public class Application {
 	}
 
 	public String solve() {
-		String xStr = initialSolution();
-		System.out.println("Initial solution "
-				+ TabuSearch.f(TabuSearch.integerArray(xStr), p));
+		bestSolution = initialSolution();
+		for (int i = 0; i < restart; i++) {
+			String solution = initialSolution();
 
-		bestSolution = xStr;
-		tabuList = new ArrayList<String>();
+			tabuList = new ArrayList<String>();
 
-		int ep = 0;
-		while (!stopingCondition(++ep)) {
-			List<String> neghbours = getNeighours(bestSolution);
-			List<String> candidateList = new ArrayList<String>();
+			int ep = 0;
+			while (!stopingCondition(++ep)) {
+				List<String> neghbours = getNeighours(solution);
+				List<String> candidateList = new ArrayList<String>();
 
-			for (String candidate : neghbours) {
-				if (!tabuList.contains(candidate)) {
-					candidateList.add(candidate);
+				for (String candidate : neghbours) {
+					if (!tabuList.contains(candidate)) {
+						candidateList.add(candidate);
+					}
+				}
+
+				String bestCandidate = getBestCandidate(candidateList);
+
+				if (bestCandidate != null
+						&& TabuSearch.fitness(
+								TabuSearch.integerArray(bestCandidate), p, r,
+								c, pMax, rMin) > TabuSearch.fitness(
+								TabuSearch.integerArray(solution), p, r, c,
+								pMax, rMin)) {
+
+					solution = bestCandidate;
+					tabuList.add(solution);
+
+					// In list new items added to end and if remove first the
+					// oldest would be removed
+					while (tabuList.size() > tabuSize) {
+						tabuList.remove(0);
+					}
 				}
 			}
 
-			String bestCandidate = getBestCandidate(candidateList);
-
-			if (bestCandidate != null
-					&& TabuSearch.fitness(
-							TabuSearch.integerArray(bestCandidate), p, r, c,
-							pMax, rMin) > TabuSearch.fitness(
-							TabuSearch.integerArray(bestSolution), p, r, c,
-							pMax, rMin)) {
-				bestSolution = bestCandidate;
-				tabuList.add(bestSolution);
-
-				// In list new items added to end and if remove first the oldest
-				// would be removed
-				while (tabuList.size() > tabuSize) {
-					tabuList.remove(0);
-				}
+			if (TabuSearch.fitness(TabuSearch.integerArray(bestSolution), p, r,
+					c, pMax, rMin) < TabuSearch.fitness(
+					TabuSearch.integerArray(solution), p, r, c, pMax, rMin)) {
+				bestSolution = solution;
 			}
 		}
 		return bestSolution;
